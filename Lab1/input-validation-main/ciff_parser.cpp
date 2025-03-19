@@ -327,6 +327,44 @@ extern "C"
             delete ciff;
         }
     }
+
+    void get_pixels(void *ciff_ptr, unsigned char *buffer, size_t buffer_size)
+    {
+        CIFF *ciff = static_cast<CIFF *>(ciff_ptr);
+        const vector<Pixel> &pixels = ciff->pixels();
+
+        size_t pixel_count = pixels.size();
+        size_t bytes_to_copy = min(buffer_size, pixel_count * 3);
+
+        for (size_t i = 0; i < bytes_to_copy / 3; i++)
+        {
+            buffer[i * 3] = pixels[i].r;
+            buffer[i * 3 + 1] = pixels[i].g;
+            buffer[i * 3 + 2] = pixels[i].b;
+        }
+    }
+
+    const char* get_tags(void* ciff_ptr) {
+        auto* ciff = static_cast<CIFF*>(ciff_ptr);
+        if (!ciff || !ciff->is_valid() || ciff->tags().empty()) {
+            return nullptr;
+        }
+    
+        static std::string tag_data;
+        tag_data.clear();
+        for (const auto& tag : ciff->tags()) {
+            std::string clean_tag;
+            for (char c : tag) {
+                if (c != '\0') {
+                    clean_tag += c;
+                }
+            }
+            tag_data += clean_tag + '\0';
+        }
+    
+        return tag_data.c_str();
+    }
+
 }
 
 // Main function for testing

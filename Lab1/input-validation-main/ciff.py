@@ -387,6 +387,11 @@ _ciff_lib.get_caption.restype = c_char_p
 _ciff_lib.free_ciff.argtypes = [c_void_p]
 _ciff_lib.free_ciff.restype = None
 
+_ciff_lib.get_pixels.argtypes = [c_void_p, ctypes.POINTER(ctypes.c_ubyte), ctypes.c_size_t]
+_ciff_lib.get_pixels.restype = None
+
+_ciff_lib.get_tags.argtypes = [c_void_p]
+_ciff_lib.get_tags.restype = c_char_p
 
 class CIFF:
     """
@@ -503,7 +508,15 @@ class CIFF:
         
         :return: list of strings
         """
-        return self._tags
+        if self._c_ciff and self.is_valid:
+            tag_bytes = _ciff_lib.get_tags(self._c_ciff)
+            if tag_bytes:
+                # Split null-separated string into a list
+                # Filter out empty strings that might result from consecutive null bytes
+                tags = [tag for tag in tag_bytes.decode("utf-8", errors="replace").split("\x00") if tag]
+                return tags
+        return []
+
     
     @property
     def pixels(self):
@@ -512,6 +525,23 @@ class CIFF:
         
         :return: list
         """
+        if self._c_ciff and not self._pixels:
+            # Calculate the number of pixels
+            pixel_count = self.width * self.height
+        
+        if pixel_count > 0:
+            # Create a buffer to hold the pixel data
+            buffer_size = pixel_count * 3
+            buffer = (ctypes.c_ubyte * buffer_size)()
+            
+            # Get the pixel data from C++
+            _ciff_lib.get_pixels(self._c_ciff, buffer, buffer_size)
+            
+            # Convert the buffer to a list of RGB tuples
+            self._pixels = []
+            for i in range(0, buffer_size, 3):
+                self._pixels.append((buffer[i], buffer[i+1], buffer[i+2]))
+    
         return self._pixels
     
     @staticmethod
