@@ -6,5 +6,7 @@ Challenge 2
     
 Challenge 3
     python _hybrid.py -e -p test_pubkey.pem -i test_plaintext_3.txt -o encrypted_output_3.json
-    
+
 Challenge 4
+    python _hybrid.py -d -s test_keypair.pem -p test_pubkey.pem -i test_ciphertext_4.crypted -o decrypted_output_4.txt
+    

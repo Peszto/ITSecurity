@@ -32,7 +32,7 @@ def save_keypair(keypair, privkeyfile):
         f.write(keypair.export_key(format='PEM', passphrase=passphrase))
 
 def load_keypair(privkeyfile):
-    #passphrase = input('Enter a passphrase to decode the saved private key: ')
+    # passphrase = input('Enter a passphrase to decode the saved private key: ')
     passphrase = getpass.getpass('Enter a passphrase to decode the saved private key: ')
     with open(privkeyfile, 'rb') as f:
         keypairstr = f.read()
