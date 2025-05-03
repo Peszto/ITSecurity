@@ -1,2 +1,10 @@
 Challenge 1
     python aes_cbc.py -e -p adishamir -i test_plaintext_1.txt -o encrypted_output.crypted
+
+Challenge 2
+    python aes_cbc.py -d -p ronrivest -i test_ciphertext_2.crypted -o decrypted_output_2.txt
+    
+Challenge 3
+    python _hybrid.py -e -p test_pubkey.pem -i test_plaintext_3.txt -o encrypted_output_3.json
+    
+Challenge 4

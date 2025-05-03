@@ -150,10 +150,13 @@ elif operation == 'enc':
         iv = b'iviviviviviviviv'  # a 16-byte test IV        
     else:
         # TODO: symkey = ...   # a 32-byte random key
+        symkey = Random.get_random_bytes(32)
         # TODO: iv = ...   # a 16-byte random IV
+        iv = Random.get_random_bytes(16)
 
     # create an AES-CBC cipher object with the generated key and IV
     # TODO: AEScipher = ...
+    AEScipher = AES.new(symkey, AES.MODE_CBC, iv)
 
     # read the plaintext from the input file
     with open(inputfile, 'rb') as f: 
@@ -161,12 +164,19 @@ elif operation == 'enc':
 
     # apply PKCS7 padding on the plaintext
     # TODO: padded_plaintext = ...
+    padded_plaintext = Padding.pad(plaintext, AES.block_size, style='pkcs7')
 	
     # encrypt the padded plaintext with the AES-CBC cipher
     # TODO: ciphertext = ...
+    ciphertext = AEScipher.encrypt(padded_plaintext)
 
     #encrypt the AES key with the RSA cipher
     # TODO: encsymkey = ... 
+    try:
+        encsymkey = RSAcipher.encrypt(symkey)
+    except ValueError:
+        print('Error: Encryption of AES key is failed.')
+        sys.exit(1)
 
     # compute signature if needed
     if sign:
@@ -230,9 +240,13 @@ elif operation == 'dec':
     if sign:
         pubkey = load_publickey(pubkeyfile)
         # TODO: verifier = ...
+        verifier = PKCS1_PSS.new(pubkey)
         # TODO: hashfn = ...
+        hashfn = SHA256.new()
         # TODO: hashfn.update(__)
+        hashfn.update(encsymkey+iv+ciphertext)
         # TODO: if verifier.verify(__, __) == True:
+        if verifier.verify(hashfn, signature) == True:
             print('Signature verification is successful.')
         else:
             print('Signature verification is failed.')
@@ -244,21 +258,26 @@ elif operation == 'dec':
     # create the RSA cipher object
     keypair = load_keypair(privkeyfile)
     # TODO: RSAcipher = ...
+    RSAcipher = PKCS1_OAEP.new(keypair)
 
     #decrypt the AES key
     try:
-        # TODO: symkey = ... 
+        # TODO: symkey = ...
+        symkey = RSAcipher.decrypt(encsymkey) 
     except ValueError:
         print('Error: Decryption of AES key is failed.')
         sys.exit(1)
 
     #create the AES-CBC cipher object
-    # TODO: AEScipher = ...   
+    # TODO: AEScipher = ...  
+    AEScipher = AES.new(symkey, AES.MODE_CBC, iv) 
 	
     # decrypt the ciphertext and remove padding
     try:
         # TODO: padded_plaintext = ...
+        padded_plaintext = AEScipher.decrypt(ciphertext)
         # TODO: plaintext = ...
+        plaintext = Padding.unpad(padded_plaintext, AES.block_size, style='pkcs7')
     except ValueError:
         print('Error: Decryption of the ciphertext is failed.')
         sys.exit(1)
