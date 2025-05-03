@@ -1,0 +1,2 @@
+Challenge 1
+    python aes_cbc.py -e -p adishamir -i test_plaintext_1.txt -o encrypted_output.crypted
